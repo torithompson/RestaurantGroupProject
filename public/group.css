@@ -1,0 +1,20 @@
+.bottom
+{
+    float: right
+}
+.page-link
+{
+    justify-content: space-around;
+}
+h1 {
+    text-align: center;
+    background-color: grey;
+    margin-bottom: 2em;
+    padding-bottom:1em;
+    padding-top:1em;
+}
+.page-link:hover:disabled
+{
+    background-color: unset;
+    color: unset;
+}

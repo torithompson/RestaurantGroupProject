@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Restaurants</title>
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+		<script type = "text/javascript" src="functions.js"></script>
+		<link rel = stylesheet type = text/css href="/group.css">
+	</head>
+	<body onload="unfilteredData()">
+		<h1>Jatrori Restaurants Ltd.</h1>
+		<div class = "container">
+		<div>
+			<select id ="filters" onchange="fillDropDowns()">
+				<option>-- No Filter --</option>
+				<option value="country">Country</option>
+				<option value="cities">Cities</option>
+				<option value="cuisine">Cuisine</option>
+			</select>
+			<select id ="options">
+				<option>-- No Filter --</option>
+			</select>
+			<button type="button" class="btn btn-outline-primary" id = "applyBtn" onclick="resetFilter()">Apply Filter</button>
+			<button type="button" class="btn btn-outline-danger" onclick="clearFilter()">Clear Filter</button>
+		</div>
+			<table id="mainTable" class="table table-bordered">
+			
+			</table>
+			<ul class = "pagination justify-content-between">
+				<li class = "page-item">
+					<button class="page-link" id="prevButton" onclick="previous()">Previous</button>
+				</li>
+				<li class = "page-item">
+				<p id="pageInfo" justify-center></p>
+				</li>
+				<li class = "page-item">
+					<button class="page-link" id="nextButton" onclick="next()">Next</button>
+				</li>
+			</ul>
+			<div class = "bottom">
+				<label>Rows To Display:</label>
+				<select id = "rowsDisplay" onchange="rowsToDisplay()">
+					<option id = "5">5</option>
+					<option id = "10">10</option>
+					<option id = "25">25</option>
+					<option id = "50">50</option>
+				</select>
+			</div>
+		</div>
+	</body>
+</html>
