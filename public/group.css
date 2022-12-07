@@ -18,3 +18,8 @@ h1 {
     background-color: unset;
     color: unset;
 }
+td, th {
+    width: 25%;
+    height: 2em;
+    
+}

@@ -1,186 +1,146 @@
+//Global variables
 let filteredData = false;
 let pageNum = 0;
 let pageSize = 5;
+let filters = document.getElementById("filters");
+let options = document.getElementById("options");
+let dataTable = document.getElementById("mainTable");
+let curPageInfo = document.getElementById("pageInfo");
+let applyBtn = document.getElementById("applyBtn");
+let clearBtn = document.getElementById("clearBtn");
+let prevButton = document.getElementById("prevButton");
+let nextButton = document.getElementById("nextButton");
+let rowsDisplay = document.getElementById("rowsDisplay");
+//Load unfiltered data and dropdowns 
+unfilteredData();
+fillDropDowns();
+// Page event listeners
+filters.addEventListener("change", fillDropDowns);
+applyBtn.addEventListener("click", resetFilter);
+clearBtn.addEventListener("click", clearFilter);
+prevButton.addEventListener("click", previous);
+nextButton.addEventListener("click", next);
+rowsDisplay.addEventListener("change", rowsToDisplay);
+//Apply filter to data
 function applyFilter(){
     
     filteredData = true;
-    let filters = document.getElementById("filters");
     let choice = filters[filters.selectedIndex];
     let choiceID = choice.value;
-    let options = document.getElementById("options");
     let option = options[options.selectedIndex];
+    let optionID = option.value;
     if(options.selectedIndex == 0)
     {
-        alert("You must select a filter");
+        alert("You must select a filter"); // Need to change this to display Jatrori Restaurants Ltd. says instead of alert of localhost:3000 says
+        clearFilter();
     }
-    else{
-    let optionID = option.value;
-    let dataTable = document.getElementById("mainTable");
-    dataTable.innerHTML = "";
-    if(choiceID == "country")
+    else
     {
-        fetch(`./country/${optionID}?page=${pageNum}&pageSize=${pageSize}`)
-        .then(response => response.json())
-        .then(data => {
-            if (pageNum == 0)
-            {
-                document.getElementById("prevButton").disabled = true;
-            }
-            else
-            {
-                document.getElementById("prevButton").disabled = false;
-            }
-            fetch(`/filter-count?pQuery=${optionID}`)
+        let fetchValue = `/filter-count?pQuery=${optionID}`
+        if(choiceID == "country")
+        {
+            fetch(`./country/${optionID}?page=${pageNum}&pageSize=${pageSize}`)
             .then(response => response.json())
-            .then(count => {
-                let curPageInfo = document.getElementById("pageInfo");
-
-                if(pageSize * (pageNum+1) < count[0].count)
-                {
-                    curPageInfo.innerHTML = `Displaying ${(pageNum + 1) * pageSize - pageSize + 1} - ${pageSize * (pageNum+1)} of ${count[0].count}`;
-                }
-                else
-                {
-                    curPageInfo.innerHTML = `Displaying ${(pageNum + 1) * pageSize - pageSize + 1} - ${count[0].count} of ${count[0].count}`;
-
-                }
-                   
-                let totalPages = Math.ceil(count[0].count / pageSize);
-
-                if(pageNum == totalPages - 1)
-                {
-                    document.getElementById("nextButton").disabled = true;  
-                }
-                else
-                {
-                    document.getElementById("nextButton").disabled = false;
-                }
-                dataTable.innerHTML =`<tr><th>Name</th>
-                <th>Country</th>
-                <th>City</th>
-                <th>Cuisine</th></tr>`;
-                for(let i = 0; i < data.length; i++)
-                {
-                    dataTable.innerHTML += 
-                    `<tr>
-                        <td>${data[i].name}</td>
-                        <td>${data[i].country}</td>
-                        <td>${data[i].city}</td>
-                        <td>${data[i].cuisine}</td>  
-                    </tr>`;
-                }
+            .then(data => {
+                displayData(data, fetchValue);
             });
-        });
+        }
+        else if(choiceID == "cities")
+        {
+            fetch(`./city/${optionID}?page=${pageNum}&pageSize=${pageSize}`)
+            .then(response => response.json())
+            .then(data => {
+                displayData(data, fetchValue);
+            });
+        }
+        else if(choiceID == "cuisine")
+        {
+            fetch(`./cuisine/${optionID}?page=${pageNum}&pageSize=${pageSize}`)
+            .then(response => response.json())
+            .then(data => {
+                displayData(data, fetchValue);
+            });
+        }
     }
-    else if(choiceID == "cities")
+}
+emptyTable();
+function emptyTable()
+{
+   let numRows = pageSize;
+   dataTable.innerHTML = `<tr>
+                                <th>Name</th>
+                                <th>Country</th>
+                                <th>City</th>
+                                <th>Cuisine</th>
+                            </tr>`;
+    for(let i = 0; i < numRows; i++)
     {
-        fetch(`./city/${optionID}?page=${pageNum}&pageSize=${pageSize}`)
-        .then(response => response.json())
-        .then(data => {
-            console.log("here");
-            if (pageNum == 0)
-            {
-                document.getElementById("prevButton").disabled = true;
-            }
-            else
-            {
-                document.getElementById("prevButton").disabled = false;
-            }
-            fetch(`/filter-count?pQuery=${optionID}`)
-            .then(response => response.json())
-            .then(count => {
-                let curPageInfo = document.getElementById("pageInfo");
-
-                if(pageSize * (pageNum+1) < count[0].count)
-                {
-                    curPageInfo.innerHTML = `Displaying ${(pageNum + 1) * pageSize - pageSize + 1} - ${pageSize * (pageNum+1)} of ${count[0].count}`;
-                }
-                else
-                {
-                    curPageInfo.innerHTML = `Displaying ${(pageNum + 1) * pageSize - pageSize + 1} - ${count[0].count} of ${count[0].count}`;
-
-                }
-                let totalPages = Math.ceil(count[0].count / pageSize);
-
-                if(pageNum == totalPages - 1)
-                {
-                    document.getElementById("nextButton").disabled = true;  
-                }
-                else
-                {
-                    document.getElementById("nextButton").disabled = false;
-                }
-                dataTable.innerHTML +=`<tr><th>Name</th>
-                <th>Country</th>
-                <th>City</th>
-                <th>Cuisine</th></tr>`;
-                for(let i = 0; i < data.length; i++)
-                {
-                    dataTable.innerHTML += 
-                    `<tr>
-                        <td>${data[i].name}</td>
-                        <td>${data[i].country}</td>
-                        <td>${data[i].city}</td>
-                        <td>${data[i].cuisine}</td>  
-                    </tr>`;
-                }
-            });
-        });
+        dataTable.innerHTML += `<tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>`;
     }
-    else if(choiceID == "cuisine")
+}
+
+function displayData(data, fetchValue)
+{
+    disablePrevBtn();
+    fetch(fetchValue)
+    .then(response => response.json())
+    .then(count => {
+        if(pageSize * (pageNum+1) < count[0].count)
+        {
+            curPageInfo.innerHTML = `Displaying ${(pageNum + 1) * pageSize - pageSize + 1} - ${pageSize * (pageNum+1)} of ${count[0].count}`;
+        }
+        else
+        {
+            curPageInfo.innerHTML = `Displaying ${(pageNum + 1) * pageSize - pageSize + 1} - ${count[0].count} of ${count[0].count}`;
+        }
+        let totalPages = Math.ceil(count[0].count / pageSize);
+        if(pageNum == totalPages - 1)
+        {
+            nextButton.disabled = true;  
+        }
+        else
+        {
+            nextButton.disabled = false;
+        }
+        for(let i = 1; i < data.length + 1; i++)
+        {
+            for (let x = 0; x < 4; x++)
+            {
+                dataTable.rows[i].cells[x].innerHTML = data[i-1][Object.keys(data[i-1])[x]];
+                /*dataTable.innerHTML += 
+                `<tr>
+                    <td>${data[i].name}</td>
+                    <td>${data[i].country}</td>
+                    <td>${data[i].city}</td>
+                    <td>${data[i].cuisine}</td>  
+                </tr>`;*/
+            }
+        }
+        if (data.length < pageSize)
+        {
+            for(let i = data.length + 1; i < pageSize + 1; i++)
+            {
+                console.log(dataTable.rows.length);
+                let num = dataTable.rows.length-1;
+                    dataTable.rows[num].remove();
+            }
+        }
+    });
+}
+function disablePrevBtn()
+{
+    if (pageNum == 0)
     {
-        fetch(`./cuisine/${optionID}?page=${pageNum}&pageSize=${pageSize}`)
-        .then(response => response.json())
-        .then(data => {
-            if (pageNum == 0)
-            {
-                document.getElementById("prevButton").disabled = true;
-            }
-            else
-            {
-                document.getElementById("prevButton").disabled = false;
-            }
-            fetch(`/filter-count?pQuery=${optionID}`)
-            .then(response => response.json())
-            .then(count => {
-                let curPageInfo = document.getElementById("pageInfo");
-
-                if(pageSize * (pageNum+1) < count[0].count)
-                {
-                    curPageInfo.innerHTML = `Displaying ${(pageNum + 1) * pageSize - pageSize + 1} - ${pageSize * (pageNum+1)} of ${count[0].count}`;
-                }
-                else
-                {
-                    curPageInfo.innerHTML = `Displaying ${(pageNum + 1) * pageSize - pageSize + 1} - ${count[0].count} of ${count[0].count}`;
-
-                }
-                let totalPages = Math.ceil(count[0].count / pageSize);
-
-                if(pageNum == totalPages - 1)
-                {
-                    document.getElementById("nextButton").disabled = true;  
-                }
-                else
-                {
-                    document.getElementById("nextButton").disabled = false;
-                }
-                dataTable.innerHTML +=`<tr><th>Name</th>
-                <th>Country</th>
-                <th>City</th>
-                <th>Cuisine</th></tr>`;
-                for(let i = 0; i < data.length; i++)
-                {
-                    dataTable.innerHTML += 
-                    `<tr>
-                        <td>${data[i].name}</td>
-                        <td>${data[i].country}</td>
-                        <td>${data[i].city}</td>
-                        <td>${data[i].cuisine}</td>  
-                    </tr>`;
-                }
-            });
-        });
+        prevButton.disabled = true;
     }
+    else
+    {
+        prevButton.disabled = false;
     }
 }
 function resetFilter(){
@@ -188,91 +148,48 @@ function resetFilter(){
     pageSize = document.getElementById("rowsDisplay").value;
     applyFilter();
 }
+// Function to clear filter and reset to default
 function clearFilter(){
-    if (document.getElementById("filters").selectedIndex != 0 || document.getElementById("options").selectedIndex != 0)
-    {
-        filteredData = false;
-        let dataTable = document.getElementById("mainTable");
-        dataTable.innerHTML = "";
-        document.getElementById("filters").selectedIndex = 0;
-        document.getElementById("options").selectedIndex = 0;
-        unfilteredData();
-    }
+    filteredData = false;
+    filters.selectedIndex = 0;
+    options.selectedIndex = 0;
+    unfilteredData();
 }
+// Function to display unfiltered data
 function unfilteredData()
 {
+    let fetchValue = `/count`;
     fetch(`./all?page=${pageNum}&pageSize=${pageSize}`)
     .then(response => response.json())
     .then(data => {
-        if (pageNum == 0)
-        {
-            document.getElementById("prevButton").disabled = true;
-        }
-        else
-        {
-            document.getElementById("prevButton").disabled = false;
-        }
-        fetch(`/count`)
-        .then(response => response.json())
-        .then(count => {
-            let totalPages = Math.ceil(count[0].count / pageSize);
-            let curPageInfo = document.getElementById("pageInfo");
-            curPageInfo.innerHTML = `Displaying ${(pageNum + 1) * pageSize - pageSize + 1} - ${pageSize * (pageNum+1)} of ${count[0].count}`;
-            if(pageNum == totalPages - 1)
-            {
-                document.getElementById("nextButton").disabled = true;
-            }
-            else
-            {
-                document.getElementById("nextButton").disabled = false;
-            }
-
-            let dataTable = document.getElementById("mainTable");
-            dataTable.innerHTML =`<tr><th>Name</th>
-            <th>Country</th>
-            <th>City</th>
-            <th>Cuisine</th></tr>`;
-            for(let i = 0; i < data.length; i++)
-            {
-                dataTable.innerHTML += `<tr>
-                <td>${data[i].name}</td>
-                <td>${data[i].country}</td>
-                <td>${data[i].city}</td>
-                <td>${data[i].cuisine}</td>  
-                </tr>`;
-            }
-        });
+        displayData(data, fetchValue);
     });
 }
+// Function to reset the page number to 0, 
+//set pageSize to the dropdown value and re-call the data 
 function rowsToDisplay()
 {
     pageNum = 0;
-    pageSize = document.getElementById("rowsDisplay").value;
-    if(filteredData)
-    {
-        applyFilter();
-    }
-    else
-    {
-        unfilteredData();
-    }
+    pageSize = rowsDisplay.value;
+    emptyTable();
+    checkFilter();
 }
+// Function to go to the previous page
 function previous()
 {
+    prevButton.blur();
     pageNum--;
-    if(filteredData)
-    {
-        applyFilter();
-    }
-    else
-    {
-        unfilteredData();
-    }
+    checkFilter();
 }
 function next()
 {
-    console.log(filteredData);
+    nextButton.blur();
     pageNum++;
+    checkFilter();
+}
+
+function checkFilter()
+{
     if(filteredData)
     {    
         applyFilter();
@@ -282,47 +199,38 @@ function next()
         unfilteredData();
     }
 }
-
+//Function to display country, city and cuisine options
 function fillDropDowns()
 {
-    let filters = document.getElementById("filters");
-        let choice = filters[filters.selectedIndex];
-        let choiceID = choice.value;
-        let options = document.getElementById("options");
-        if(choiceID == "country")
-        {
-            fetch("./countries")
-            .then(response => response.json())
-            .then(data => {
-                options.innerHTML = `<option>--No Filter--</option>`;
-                for(let i = 0; i < data.length; i++)
-                {
-                    options.innerHTML += `<option>${data[i].country}</option>`;
-                }
-            });
-        }
-        else if(choiceID == "cities")
-        {
-            fetch("./cities")
-            .then(response => response.json())
-            .then(data => {
-                options.innerHTML = `<option>--No Filter--</option>`;
-                for(let i = 0; i < data.length; i++)
-                {
-                    options.innerHTML += `<option>${data[i].city}</option>`;
-                }
-            });
-        }
-        else if(choiceID == "cuisine")
-        {
-            fetch("./cuisines")
-            .then(response => response.json())
-            .then(data => {
-                options.innerHTML = `<option>--No Filter--</option>`;
-                for(let i = 0; i < data.length; i++)
-                {
-                    options.innerHTML += `<option>${data[i].cuisine}</option>`;
-                }
-            });
-        }
+    let choice = filters[filters.selectedIndex];
+    let choiceID = choice.value;
+    if(choiceID == "country")
+    {
+        fetchOptions(`/countries`);
+    }
+    else if(choiceID == "cities")
+    {
+        fetchOptions(`/cities`);
+    }
+    else if(choiceID == "cuisine")
+    {
+        fetchOptions(`/cuisines`);
+    }
 }
+function fetchOptions(passedValue)
+{
+    fetch(passedValue)
+    .then(response => response.json())
+    .then(data => {
+        options.innerHTML = `<option>--No Filter--</option>`;
+        // do a for each loop
+        for(key in data)
+        {
+            for (value in data[key])
+            {
+                options.innerHTML += `<option>${data[key][value]}</option>`;
+            }
+        }
+    });
+}
+       
