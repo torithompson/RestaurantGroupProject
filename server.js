@@ -7,7 +7,7 @@ app.use(express.static('public'));
 app.set('view engine', 'ejs');
 app.listen(3000);
 //Route to index page
-app.get("/", async (request, response) => {
+app.get("/", (request, response) => {
     response.render('index');
 });
 //Route to get all data for unfiltered table
@@ -19,19 +19,19 @@ app.get("/all", (request, response) => {
     });
 });
 //Route to retrieve list of countries
-app.get("/countries", (request, response) => {
+app.get("/country", (request, response) => {
     queries.displayCountries().then(result => {
         response.json(result);
     });
 });
 //Route to retrieve list of cities
-app.get("/cities", (request, response) => {
+app.get("/city", (request, response) => {
     queries.displayCities().then(result => {
         response.json(result);
     });
 });
 //Route to retrieve list of cuisines
-app.get("/cuisines", (request, response) => {
+app.get("/cuisine", (request, response) => {
     queries.displayCuisines().then(result => {
         response.json(result);
     });

@@ -2,6 +2,7 @@
 let filteredData = false;
 let pageNum = 0;
 let pageSize = 5;
+// Populate variables with DOM elements
 let filters = document.getElementById("filters");
 let options = document.getElementById("options");
 let dataTable = document.getElementById("mainTable");
@@ -11,59 +12,41 @@ let clearBtn = document.getElementById("clearBtn");
 let prevButton = document.getElementById("prevButton");
 let nextButton = document.getElementById("nextButton");
 let rowsDisplay = document.getElementById("rowsDisplay");
-//Load unfiltered data and dropdowns 
-unfilteredData();
+// Call functions to populate dropdowns and display unfiltered data and create the empty table on page load
 fillDropDowns();
+emptyTable();
+unfilteredData();
 // Page event listeners
 filters.addEventListener("change", fillDropDowns);
-applyBtn.addEventListener("click", resetFilter);
+options.addEventListener("change", enableACBtns);
+applyBtn.addEventListener("click", resetPageNumAndSize);
 clearBtn.addEventListener("click", clearFilter);
 prevButton.addEventListener("click", previous);
 nextButton.addEventListener("click", next);
 rowsDisplay.addEventListener("change", rowsToDisplay);
-//Apply filter to data
-function applyFilter(){
-    
-    filteredData = true;
+// This populates the dropdowns with the data that is fetched from the database
+function fillDropDowns()
+{
     let choice = filters[filters.selectedIndex];
     let choiceID = choice.value;
-    let option = options[options.selectedIndex];
-    let optionID = option.value;
-    if(options.selectedIndex == 0)
+    // This checks to see if the user has selected a filter and if they have, it calls the appropriate fetch
+    if (choiceID != "-- No Filter --")
     {
-        alert("You must select a filter"); // Need to change this to display Jatrori Restaurants Ltd. says instead of alert of localhost:3000 says
-        clearFilter();
+        fetch(`./${choiceID}`)
+        .then(response => response.json())
+        .then(data => {
+            options.innerHTML = `<option>--No Filter--</option>`;
+            for(key in data)
+            {
+                for (value in data[key])
+                {
+                    options.innerHTML += `<option>${data[key][value]}</option>`;
+                }
+            }
+        });
     }
-    else
-    {
-        let fetchValue = `/filter-count?pQuery=${optionID}`
-        if(choiceID == "country")
-        {
-            fetch(`./country/${optionID}?page=${pageNum}&pageSize=${pageSize}`)
-            .then(response => response.json())
-            .then(data => {
-                displayData(data, fetchValue);
-            });
-        }
-        else if(choiceID == "cities")
-        {
-            fetch(`./city/${optionID}?page=${pageNum}&pageSize=${pageSize}`)
-            .then(response => response.json())
-            .then(data => {
-                displayData(data, fetchValue);
-            });
-        }
-        else if(choiceID == "cuisine")
-        {
-            fetch(`./cuisine/${optionID}?page=${pageNum}&pageSize=${pageSize}`)
-            .then(response => response.json())
-            .then(data => {
-                displayData(data, fetchValue);
-            });
-        }
-    }
-}
-emptyTable();
+} 
+// This function is called on page load to create an empty table
 function emptyTable()
 {
    let numRows = pageSize;
@@ -83,111 +66,151 @@ function emptyTable()
                                 </tr>`;
     }
 }
-
-function displayData(data, fetchValue)
+// Function to display unfiltered data
+function unfilteredData()
 {
-    disablePrevBtn();
-    fetch(fetchValue)
-    .then(response => response.json())
-    .then(count => {
-        if(pageSize * (pageNum+1) < count[0].count)
-        {
-            curPageInfo.innerHTML = `Displaying ${(pageNum + 1) * pageSize - pageSize + 1} - ${pageSize * (pageNum+1)} of ${count[0].count}`;
-        }
-        else
-        {
-            curPageInfo.innerHTML = `Displaying ${(pageNum + 1) * pageSize - pageSize + 1} - ${count[0].count} of ${count[0].count}`;
-        }
-        let totalPages = Math.ceil(count[0].count / pageSize);
-        if(pageNum == totalPages - 1)
-        {
-            nextButton.disabled = true;  
-        }
-        else
-        {
-            nextButton.disabled = false;
-        }
-        for(let i = 1; i < data.length + 1; i++)
-        {
-            for (let x = 0; x < 4; x++)
-            {
-                dataTable.rows[i].cells[x].innerHTML = data[i-1][Object.keys(data[i-1])[x]];
-                /*dataTable.innerHTML += 
-                `<tr>
-                    <td>${data[i].name}</td>
-                    <td>${data[i].country}</td>
-                    <td>${data[i].city}</td>
-                    <td>${data[i].cuisine}</td>  
-                </tr>`;*/
-            }
-        }
-        if (data.length < pageSize)
-        {
-            for(let i = data.length + 1; i < pageSize + 1; i++)
-            {
-                console.log(dataTable.rows.length);
-                let num = dataTable.rows.length-1;
-                    dataTable.rows[num].remove();
-            }
-        }
-    });
+    // This calls a generic fetch to get the data from the server
+    fetchDataAndDisplay(`./all?page=${pageNum}&pageSize=${pageSize}`, `/count`);
 }
-function disablePrevBtn()
+// This function is called when the options dropdown is changed
+function enableACBtns()
 {
-    if (pageNum == 0)
-    {
-        prevButton.disabled = true;
-    }
-    else
-    {
-        prevButton.disabled = false;
-    }
+    applyBtn.disabled = false;
+    clearBtn.disabled = false;
 }
-function resetFilter(){
+// This function is called when the user clicks the apply button
+function resetPageNumAndSize(){
     pageNum = 0;
     pageSize = document.getElementById("rowsDisplay").value;
     applyFilter();
 }
-// Function to clear filter and reset to default
+// This function is called after the page number and size are reset
+// So that errors are not thrown when the user clicks the apply button in the middle of scrolling through the data
+function applyFilter(){
+    // Disable the apply button
+    applyBtn.disabled = true;
+    // Set the filteredData variable to true to indicate that the data is filtered
+    filteredData = true;
+    // Get the selected filter and option from the dropdowns
+    let choice = filters[filters.selectedIndex];
+    let choiceID = choice.value;
+    let option = options[options.selectedIndex];
+    let optionID = option.value;
+    // If the user selects the default option, display an alert and clear the filter
+    if(options.selectedIndex == 0)
+    {
+        alert("You must select a filter");
+        clearFilter();
+    }
+    else // Otherwise, call the function to display the filtered data
+    {
+        // This calls a function to get the data from the server
+        fetchDataAndDisplay(`./${choiceID}/${optionID}?page=${pageNum}&pageSize=${pageSize}`, `/filter-count?pQuery=${optionID}`);
+    }
+}
+// This function calls a fetch at a passed route to get the data from the server and display it to the table
+function fetchDataAndDisplay(fetchValue, fetchtValueToPass)
+{
+    fetch(fetchValue)
+    .then(response => response.json())
+    .then(data => {
+        // This checks to see if the user is on the first page and disables the previous button if they are
+        if (pageNum == 0)
+        {
+            prevButton.disabled = true;
+        }
+        else
+        {
+            prevButton.disabled = false;
+        }
+        // This checks to see how many rows are in the table and if there are less than the page size, it recreates the table
+        if (dataTable.rows.length < pageSize + 1)
+        {
+            emptyTable();
+        }
+        fetch(fetchtValueToPass)
+        .then(response => response.json())
+        .then(count => {
+            // This gets the current position in the data
+            let curPos = (pageNum + 1) * pageSize - pageSize + 1;
+            // This checks displays the current data range being displayed and the total number of records
+            if(pageSize * (pageNum+1) < count[0].count)
+            {
+                curPageInfo.innerHTML = `Displaying ${curPos} - ${pageSize * (pageNum+1)} of ${count[0].count}`;
+            }
+            else // If it is the last page, it displays the total number of records
+            {
+                curPageInfo.innerHTML = `Displaying ${curPos} - ${count[0].count} of ${count[0].count}`;
+            }
+            // This variable gets the total number of pages
+            let totalPages = Math.ceil(count[0].count / pageSize);
+            // This checks to see if the user is on the last page and disables the next button if they are
+            if(pageNum == totalPages - 1)
+            {
+                nextButton.disabled = true;  
+            }
+            else
+            {
+                nextButton.disabled = false;
+            }
+            // This loops through the data and displays it to the table
+            for(let i = 1; i < data.length + 1; i++)
+            {
+                for (let x = 0; x < 4; x++)
+                {
+                    dataTable.rows[i].cells[x].innerHTML = data[i-1][Object.keys(data[i-1])[x]];
+                }
+            }
+            // This checks to see if there are less records than the page size and removes the extra rows
+            if (data.length < pageSize)
+            {
+                let choice = options[options.selectedIndex];
+                let choiceID = choice.value;
+                for(let i = 0; i < pageSize - data.length; i++)
+                {
+                    // Checks to see if the value in the row is not the same as the selected option and if it is not, it removes the row
+                    if (dataTable.rows[data.length+1].cells[filters.selectedIndex].innerHTML != choiceID)
+                    {
+                        dataTable.rows[data.length+1].remove();
+                    }
+                }
+            }
+        });
+    });
+}
+// This function is called when the user clicks the clear button to clear the filter and display the unfiltered data
 function clearFilter(){
+    clearBtn.disabled = true;
     filteredData = false;
     filters.selectedIndex = 0;
     options.selectedIndex = 0;
     unfilteredData();
 }
-// Function to display unfiltered data
-function unfilteredData()
-{
-    let fetchValue = `/count`;
-    fetch(`./all?page=${pageNum}&pageSize=${pageSize}`)
-    .then(response => response.json())
-    .then(data => {
-        displayData(data, fetchValue);
-    });
-}
-// Function to reset the page number to 0, 
-//set pageSize to the dropdown value and re-call the data 
-function rowsToDisplay()
-{
-    pageNum = 0;
-    pageSize = rowsDisplay.value;
-    emptyTable();
-    checkFilter();
-}
-// Function to go to the previous page
+// This function is called when the user clicks the previous button to go to the previous page
 function previous()
 {
+    // This removes the focus from the button
     prevButton.blur();
     pageNum--;
     checkFilter();
 }
+// This function is called when the user clicks the next button to go to the next page
 function next()
 {
     nextButton.blur();
     pageNum++;
     checkFilter();
 }
-
+// This function is called when the user changes the number of rows to display
+function rowsToDisplay()
+{
+    pageNum = 0;
+    pageSize = rowsDisplay.value;
+    // Recreates the table based on the new page size
+    emptyTable();
+    checkFilter();
+}
+// This function checks to see if the data is filtered and calls the appropriate function
 function checkFilter()
 {
     if(filteredData)
@@ -198,39 +221,4 @@ function checkFilter()
     {    
         unfilteredData();
     }
-}
-//Function to display country, city and cuisine options
-function fillDropDowns()
-{
-    let choice = filters[filters.selectedIndex];
-    let choiceID = choice.value;
-    if(choiceID == "country")
-    {
-        fetchOptions(`/countries`);
-    }
-    else if(choiceID == "cities")
-    {
-        fetchOptions(`/cities`);
-    }
-    else if(choiceID == "cuisine")
-    {
-        fetchOptions(`/cuisines`);
-    }
-}
-function fetchOptions(passedValue)
-{
-    fetch(passedValue)
-    .then(response => response.json())
-    .then(data => {
-        options.innerHTML = `<option>--No Filter--</option>`;
-        // do a for each loop
-        for(key in data)
-        {
-            for (value in data[key])
-            {
-                options.innerHTML += `<option>${data[key][value]}</option>`;
-            }
-        }
-    });
-}
-       
+}    
