@@ -18,7 +18,7 @@ emptyTable();
 unfilteredData();
 // Page event listeners
 filters.addEventListener("change", fillDropDowns);
-options.addEventListener("change", enableACBtns);
+options.addEventListener("change", enableCBtn);
 applyBtn.addEventListener("click", resetPageNumAndSize);
 clearBtn.addEventListener("click", clearFilter);
 prevButton.addEventListener("click", previous);
@@ -73,9 +73,8 @@ function unfilteredData()
     fetchDataAndDisplay(`./all?page=${pageNum}&pageSize=${pageSize}`, `/count`);
 }
 // This function is called when the options dropdown is changed
-function enableACBtns()
+function enableCBtn()
 {
-    applyBtn.disabled = false;
     clearBtn.disabled = false;
 }
 // This function is called when the user clicks the apply button
@@ -87,8 +86,6 @@ function resetPageNumAndSize(){
 // This function is called after the page number and size are reset
 // So that errors are not thrown when the user clicks the apply button in the middle of scrolling through the data
 function applyFilter(){
-    // Disable the apply button
-    applyBtn.disabled = true;
     // Set the filteredData variable to true to indicate that the data is filtered
     filteredData = true;
     // Get the selected filter and option from the dropdowns
@@ -109,9 +106,9 @@ function applyFilter(){
     }
 }
 // This function calls a fetch at a passed route to get the data from the server and display it to the table
-function fetchDataAndDisplay(fetchValue, fetchtValueToPass)
+function fetchDataAndDisplay(firstFetchValue, secondFetchValue)
 {
-    fetch(fetchValue)
+    fetch(firstFetchValue)
     .then(response => response.json())
     .then(data => {
         // This checks to see if the user is on the first page and disables the previous button if they are
@@ -128,7 +125,7 @@ function fetchDataAndDisplay(fetchValue, fetchtValueToPass)
         {
             emptyTable();
         }
-        fetch(fetchtValueToPass)
+        fetch(secondFetchValue)
         .then(response => response.json())
         .then(count => {
             // This gets the current position in the data
@@ -171,6 +168,7 @@ function fetchDataAndDisplay(fetchValue, fetchtValueToPass)
                     // Checks to see if the value in the row is not the same as the selected option and if it is not, it removes the row
                     if (dataTable.rows[data.length+1].cells[filters.selectedIndex].innerHTML != choiceID)
                     {
+                        // Remove the last row
                         dataTable.rows[data.length+1].remove();
                     }
                 }
