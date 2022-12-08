@@ -8,22 +8,20 @@
 	<body>
 		<h1>Jatrori Restaurants Ltd.</h1>
 		<div class = "container">
-		<div>
-			<select id ="filters">
-				<option>-- No Filter --</option>
-				<option value="country">Country</option>
-				<option value="city">Cities</option>
-				<option value="cuisine">Cuisine</option>
-			</select>
-			<select id ="options">
-				<option>-- No Filter --</option>
-			</select>
-			<button type="button" class="btn btn-outline-primary shadow-none" id = "applyBtn">Apply Filter</button>
-			<button type="button" class="btn btn-outline-danger shadow-none" id="clearBtn" disabled>Clear Filter</button>
-		</div>
-			<table style="width:100%" id="mainTable" class="table table-bordered">
-				
-			</table>
+			<div>
+				<select id ="filters">
+					<option>-- No Filter --</option>
+					<option value="country">Country</option>
+					<option value="city">Cities</option>
+					<option value="cuisine">Cuisine</option>
+				</select>
+				<select id ="options">
+					<option>-- No Filter --</option>
+				</select>
+				<button type="button" class="btn btn-outline-primary shadow-none" id = "applyBtn">Apply Filter</button>
+				<button type="button" class="btn btn-outline-danger shadow-none" id="clearBtn" disabled>Clear Filter</button>
+			</div>
+			<table style="width:100%" id="mainTable" class="table table-bordered"></table>
 			<ul class = "pagination justify-content-between">
 				<li class = "page-item">
 					<button class="page-link shadow-none" id="prevButton">Previous</button>
